@@ -16,9 +16,9 @@ type Config struct {
 }
 
 type Trello struct {
-	Key   string
-	Token string
-	Board string
+	Key     string
+	Token   string
+	BoardID string
 }
 
 var config Config
@@ -31,22 +31,14 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	trello, err := trello.NewAuthClient(config.Trello.Key, &config.Trello.Token)
+	client, err := trello.NewAuthClient(config.Trello.Key, &config.Trello.Token)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	board, err := trello.Board(config.Trello.Board)
+	lists, err := createList(config.Trello.BoardID, client)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	cards, err := board.Cards()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	for _, v := range cards {
-		fmt.Println(v.Name)
-	}
+	fmt.Println(lists)
 }
