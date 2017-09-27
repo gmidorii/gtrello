@@ -38,12 +38,11 @@ func createList(boardID string, client *trello.Client) ([]TmpList, error) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	tmpLists := make([]TmpList, 0, 0)
+	var tmpLists []TmpList
 	for _, v := range lists {
 		tmpLists = append(tmpLists, TmpList{
-			ID:    v.Id,
-			Name:  v.Name,
-			Cards: make([]TmpCard, 0, 0),
+			ID:   v.Id,
+			Name: v.Name,
 		})
 	}
 
@@ -53,7 +52,7 @@ func createList(boardID string, client *trello.Client) ([]TmpList, error) {
 	}
 
 	for _, card := range cards {
-		for _, list := range tmpLists {
+		for i, list := range tmpLists {
 			if card.IdList == list.ID {
 				checklists, err := card.Checklists()
 				if err != nil {
@@ -73,7 +72,7 @@ func createList(boardID string, client *trello.Client) ([]TmpList, error) {
 						TmpCheckItems: tmpItems,
 					})
 				}
-				list.Cards = append(list.Cards, TmpCard{
+				tmpLists[i].Cards = append(tmpLists[i].Cards, TmpCard{
 					Name:       card.Name,
 					Checklists: tmpCheckLists,
 				})
