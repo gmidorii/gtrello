@@ -2,14 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 
 	"github.com/BurntSushi/toml"
 	trello "github.com/VojtechVitek/go-trello"
 )
-
-const trelloUrl = "https://trello.com/1"
 
 type Config struct {
 	Trello Trello
@@ -21,10 +18,14 @@ type Trello struct {
 	BoardID string
 }
 
-var config Config
+var (
+	config       Config
+	templateFile string
+)
 
 func main() {
 	fConfig := flag.String("c", "./config.toml", "config file path")
+	fTemplate := flag.String("t", "./template.md", "template file path")
 	flag.Parse()
 
 	if _, err := toml.DecodeFile(*fConfig, &config); err != nil {
@@ -36,9 +37,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	lists, err := createList(config.Trello.BoardID, client)
+	output, err := createList(config.Trello.BoardID, client)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(lists)
+	if err := outputFile(*fTemplate, output); err != nil {
+		log.Fatal(err)
+	}
 }

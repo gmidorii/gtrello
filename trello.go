@@ -1,10 +1,12 @@
 package main
 
 import (
-	"log"
-
 	trello "github.com/VojtechVitek/go-trello"
 )
+
+type Output struct {
+	Lists []TmpList
+}
 
 type TmpList struct {
 	ID    string
@@ -18,8 +20,8 @@ type TmpCard struct {
 }
 
 type TmpCheckList struct {
-	Name          string
-	TmpCheckItems []TmpCheckItem
+	Name       string
+	CheckItems []TmpCheckItem
 }
 
 type TmpCheckItem struct {
@@ -27,16 +29,18 @@ type TmpCheckItem struct {
 	State string
 }
 
-func createList(boardID string, client *trello.Client) ([]TmpList, error) {
+func createList(boardID string, client *trello.Client) (Output, error) {
+	var output Output
+
 	board, err := client.Board(boardID)
 	if err != nil {
-		log.Fatalln(err)
+		return output, err
 	}
 
 	// lists
 	lists, err := board.Lists()
 	if err != nil {
-		log.Fatalln(err)
+		return output, err
 	}
 	var tmpLists []TmpList
 	for _, v := range lists {
@@ -48,7 +52,7 @@ func createList(boardID string, client *trello.Client) ([]TmpList, error) {
 
 	cards, err := board.Cards()
 	if err != nil {
-		log.Fatalln(err)
+		return output, err
 	}
 
 	for _, card := range cards {
@@ -56,7 +60,7 @@ func createList(boardID string, client *trello.Client) ([]TmpList, error) {
 			if card.IdList == list.ID {
 				checklists, err := card.Checklists()
 				if err != nil {
-					return nil, err
+					return output, err
 				}
 				var tmpCheckLists []TmpCheckList
 				for _, checklist := range checklists {
@@ -68,8 +72,8 @@ func createList(boardID string, client *trello.Client) ([]TmpList, error) {
 						})
 					}
 					tmpCheckLists = append(tmpCheckLists, TmpCheckList{
-						Name:          checklist.Name,
-						TmpCheckItems: tmpItems,
+						Name:       checklist.Name,
+						CheckItems: tmpItems,
 					})
 				}
 				tmpLists[i].Cards = append(tmpLists[i].Cards, TmpCard{
@@ -81,5 +85,5 @@ func createList(boardID string, client *trello.Client) ([]TmpList, error) {
 		}
 	}
 
-	return tmpLists, nil
+	return Output{tmpLists}, nil
 }
