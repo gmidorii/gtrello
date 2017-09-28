@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
+	"os/exec"
 
 	"github.com/BurntSushi/toml"
 	trello "github.com/VojtechVitek/go-trello"
@@ -17,6 +19,8 @@ type Trello struct {
 	Token   string
 	BoardID string
 }
+
+const gtrello = "gtrello.md"
 
 var (
 	config       Config
@@ -41,7 +45,15 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if err := outputFile(*fTemplate, output); err != nil {
+	if err = outputFile(*fTemplate, output, gtrello); err != nil {
+		log.Fatal(err)
+	}
+
+	cmd := exec.Command("vim", gtrello)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
+	if err != nil {
 		log.Fatal(err)
 	}
 }
