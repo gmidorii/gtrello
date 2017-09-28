@@ -19,5 +19,4 @@ config.toml
 
 # temp file
 output.md
-template.md
 gtrello.md

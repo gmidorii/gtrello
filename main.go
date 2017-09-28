@@ -29,7 +29,7 @@ var (
 
 func main() {
 	fConfig := flag.String("c", "./config.toml", "config file path")
-	fTemplate := flag.String("t", "./template.md", "template file path")
+	fTemplate := flag.String("t", ".template/template.md", "template file path")
 	flag.Parse()
 
 	if _, err := toml.DecodeFile(*fConfig, &config); err != nil {
