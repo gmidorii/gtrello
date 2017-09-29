@@ -14,6 +14,7 @@
 .glide/
 vendor
 debug
+gTrello
 
 config.toml
 
