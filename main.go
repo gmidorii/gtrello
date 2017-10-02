@@ -12,12 +12,17 @@ import (
 
 type Config struct {
 	Trello Trello
+	Slack  Slack
 }
 
 type Trello struct {
 	Key     string
 	Token   string
 	BoardID string
+}
+
+type Slack struct {
+	Token string
 }
 
 const gtrello = "gtrello.md"
