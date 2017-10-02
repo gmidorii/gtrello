@@ -20,4 +20,4 @@ config.toml
 
 # temp file
 output.md
-gtrello.md
+*gtrello.md
