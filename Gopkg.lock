@@ -13,9 +13,21 @@
   revision = "4a7db23ac973c12e59e3c781b359005995bb3838"
   version = "v0.1"
 
+[[projects]]
+  name = "github.com/nlopes/slack"
+  packages = ["."]
+  revision = "c86337c0ef2486a15edd804355d9c73d2f2caed1"
+  version = "v0.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/net"
+  packages = ["websocket"]
+  revision = "a04bdaca5b32abe1c069418fb7088ae607de5bd0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "65cbe0dce1a995c05797fe2f22226280e4360eb2be93728e05adaebb7eb71a9d"
+  inputs-digest = "352293fd2f75740ff4471d973905d2efd03eb2cec541b9830c8fdf7ff7c93a3f"
   solver-name = "gps-cdcl"
   solver-version = 1

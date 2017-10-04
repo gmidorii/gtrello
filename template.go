@@ -9,17 +9,21 @@ import (
 
 const format = "2006-01-02"
 
-func outputFile(file string, output Output, outputPath string) error {
+func outputFile(file string, output Output, outputPath string) (string, error) {
 	tmp, err := template.New("template.md").ParseFiles(file)
 	if err != nil {
-		return err
+		return "", err
 	}
 	now := time.Now()
-	foutput, err := os.Create(fmt.Sprintf("%s-%s", now.Format(format), outputPath))
+	name := fmt.Sprintf("%s-%s", now.Format(format), outputPath)
+	foutput, err := os.Create(name)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer foutput.Close()
 
-	return tmp.Execute(foutput, output)
+	if err = tmp.Execute(foutput, output); err != nil {
+		return "", err
+	}
+	return name, nil
 }

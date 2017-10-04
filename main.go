@@ -50,11 +50,12 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	if err = outputFile(*fTemplate, output, gtrello); err != nil {
+	name, err := outputFile(*fTemplate, output, gtrello)
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	cmd := exec.Command("vim", gtrello)
+	cmd := exec.Command("vim", name)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err = cmd.Run()

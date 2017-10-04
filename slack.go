@@ -1,7 +1,14 @@
 package main
 
-import "github.com/nlopes/slack"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/nlopes/slack"
+)
 
 func send(token string) error {
 	api := slack.New(token)
+	fmt.Println(api)
+	return errors.New("err")
 }
