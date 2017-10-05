@@ -35,6 +35,7 @@ var (
 func main() {
 	fConfig := flag.String("c", "./config.toml", "config file path")
 	fTemplate := flag.String("t", "./template/template.md", "template file path")
+	fOutput := flag.String("o", "./", "output file path")
 	flag.Parse()
 
 	if _, err := toml.DecodeFile(*fConfig, &config); err != nil {
@@ -50,7 +51,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	name, err := outputFile(*fTemplate, output, gtrello)
+	name, err := outputFile(*fTemplate, output, *fOutput)
 	if err != nil {
 		log.Fatal(err)
 	}

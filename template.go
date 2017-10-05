@@ -15,7 +15,7 @@ func outputFile(file string, output Output, outputPath string) (string, error) {
 		return "", err
 	}
 	now := time.Now()
-	name := fmt.Sprintf("%s-%s", now.Format(format), outputPath)
+	name := fmt.Sprintf("%s/%s-%s", outputPath, now.Format(format), gtrello)
 	foutput, err := os.Create(name)
 	if err != nil {
 		return "", err
