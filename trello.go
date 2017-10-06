@@ -2,6 +2,7 @@ package main
 
 import (
 	trello "github.com/VojtechVitek/go-trello"
+	"github.com/pkg/errors"
 )
 
 type Output struct {
@@ -34,13 +35,13 @@ func createList(boardID string, client *trello.Client) (Output, error) {
 
 	board, err := client.Board(boardID)
 	if err != nil {
-		return output, err
+		return output, errors.Wrap(err, "faild fetch trello board")
 	}
 
 	// lists
 	lists, err := board.Lists()
 	if err != nil {
-		return output, err
+		return output, errors.Wrap(err, "faild fetch trello lists")
 	}
 	var tmpLists []TmpList
 	for _, v := range lists {
@@ -52,7 +53,7 @@ func createList(boardID string, client *trello.Client) (Output, error) {
 
 	cards, err := board.Cards()
 	if err != nil {
-		return output, err
+		return output, errors.Wrap(err, "faild fetch trello cards")
 	}
 
 	for _, card := range cards {
@@ -60,7 +61,7 @@ func createList(boardID string, client *trello.Client) (Output, error) {
 			if card.IdList == list.ID {
 				checklists, err := card.Checklists()
 				if err != nil {
-					return output, err
+					return output, errors.Wrap(err, "faild fetch trello checklist from card")
 				}
 				var tmpCheckLists []TmpCheckList
 				for _, checklist := range checklists {
