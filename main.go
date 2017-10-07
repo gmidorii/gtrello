@@ -47,11 +47,11 @@ func main() {
 		log.Fatalf("failed auth trello :%+v\n", err)
 	}
 
-	output, err := createList(config.Trello.BoardID, client)
+	output, err := fetchTrello(config.Trello.BoardID, client)
 	if err != nil {
 		log.Fatalf("%+v\n", err)
 	}
-	name, err := outputFile(*fTemplate, output, *fOutput)
+	name, err := writeFile(*fTemplate, output, *fOutput)
 	if err != nil {
 		log.Fatal(err)
 	}
