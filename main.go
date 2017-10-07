@@ -39,12 +39,12 @@ func main() {
 	flag.Parse()
 
 	if _, err := toml.DecodeFile(*fConfig, &config); err != nil {
-		log.Fatalf("failed config file :%v\n", err)
+		log.Fatalf("failed config file :%+v\n", err)
 	}
 
 	client, err := trello.NewAuthClient(config.Trello.Key, &config.Trello.Token)
 	if err != nil {
-		log.Fatalf("failed trello authentication :%v\n", err)
+		log.Fatalf("failed auth trello :%+v\n", err)
 	}
 
 	output, err := createList(config.Trello.BoardID, client)
