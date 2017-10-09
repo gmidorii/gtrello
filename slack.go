@@ -6,7 +6,7 @@ import (
 	"github.com/nlopes/slack"
 )
 
-func send(token, channel, text string) error {
+func slackSend(token, channel, text string) error {
 	client := slack.New(token)
 	client.PostMessage(channel, text, slack.PostMessageParameters{
 		Username: "Daily Report",

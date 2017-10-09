@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -22,7 +23,8 @@ type Trello struct {
 }
 
 type Slack struct {
-	Token string
+	Token   string
+	Channel string
 }
 
 const gtrello = "gtrello.md"
@@ -60,6 +62,14 @@ func main() {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	b, err := ioutil.ReadAll(name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = slackSend(config.Slack.Token, config.Slack.Channel, string(b))
 	if err != nil {
 		log.Fatal(err)
 	}
