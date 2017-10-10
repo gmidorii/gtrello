@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -65,10 +66,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	b, err := ioutil.ReadAll(name)
+
+	file, err := os.Open(name)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer file.Close()
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(b))
 	err = slackSend(config.Slack.Token, config.Slack.Channel, string(b))
 	if err != nil {
 		log.Fatal(err)

@@ -30,7 +30,7 @@ type TmpCheckItem struct {
 	State string
 }
 
-func featchTrello(boardID string, client *trello.Client) (Output, error) {
+func fetchTrello(boardID string, client *trello.Client) (Output, error) {
 	var output Output
 
 	board, err := client.Board(boardID)
