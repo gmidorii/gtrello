@@ -42,51 +42,71 @@ type TmpCheckItem struct {
 func fetchTrello(boardID string, client *trello.Client) (Output, error) {
 	var output Output
 
-	start := time.Now()
 	board, err := client.Board(boardID)
 	if err != nil {
 		return output, errors.Wrap(err, "faild fetch trello board")
 	}
-	fmt.Printf("board: %g s\n", time.Now().Sub(start).Seconds())
 
 	// lists
-	start = time.Now()
 	lists, err := board.Lists()
 	if err != nil {
 		return output, errors.Wrap(err, "faild fetch trello lists")
 	}
-	fmt.Printf("lists: %g s\n", time.Now().Sub(start).Seconds())
-	var tmpLists []TmpList
-	for _, v := range lists {
-		tmpLists = append(tmpLists, TmpList{
+	tmpLists := make([]TmpList, len(lists), len(lists))
+	for i, v := range lists {
+		tmpLists[i] = TmpList{
 			ID:   v.Id,
 			Name: v.Name,
-		})
+		}
 	}
 
-	start = time.Now()
 	cards, err := board.Cards()
 	if err != nil {
 		return output, errors.Wrap(err, "faild fetch trello cards")
 	}
-	fmt.Printf("cards: %g s\n", time.Now().Sub(start).Seconds())
 
-	start = time.Now()
+	// fetch checklist
+	checkChan := make(chan []trello.Checklist)
+	for _, card := range cards {
+		go func() {
+			checklist, _ := card.Checklists()
+			checkChan <- checklist
+		}()
+	}
+	checklists := make([]trello.Checklist, len(cards)*2, len(cards)*2)
+	idx := 0
+	count := 0
+loop:
+	for {
+		select {
+		case checklist := <-checkChan:
+			for _, v := range checklist {
+				fmt.Println(v)
+				checklists[idx] = v
+				idx++
+			}
+			count++
+			if len(cards) == count {
+				break loop
+			}
+		}
+	}
+
 	for _, card := range cards {
 		for i, list := range tmpLists {
 			if card.IdList == list.ID {
-				checklists, err := card.Checklists()
+				checklists := findCheckLists(checklists, card.IdCheckLists)
 				if err != nil {
 					return output, errors.Wrap(err, "faild fetch trello checklist from card")
 				}
 				var tmpCheckLists []TmpCheckList
 				for _, checklist := range checklists {
-					var tmpItems []TmpCheckItem
-					for _, item := range checklist.CheckItems {
-						tmpItems = append(tmpItems, TmpCheckItem{
+					tmpItems := make([]TmpCheckItem, len(checklist.CheckItems), len(checklist.CheckItems))
+					for i, item := range checklist.CheckItems {
+						tmpItems[i] = TmpCheckItem{
 							Name:  item.Name,
 							State: item.State,
-						})
+						}
 					}
 					tmpCheckLists = append(tmpCheckLists, TmpCheckList{
 						Name:       checklist.Name,
@@ -110,7 +130,17 @@ func fetchTrello(boardID string, client *trello.Client) (Output, error) {
 			}
 		}
 	}
-	fmt.Printf("convert: %g s\n", time.Now().Sub(start).Seconds())
-
 	return Output{tmpLists}, nil
+}
+
+func findCheckLists(checklists []trello.Checklist, ids []string) []trello.Checklist {
+	results := make([]trello.Checklist, 0, 0)
+	for _, id := range ids {
+		for _, checklist := range checklists {
+			if id == checklist.Id {
+				results = append(results, checklist)
+			}
+		}
+	}
+	return results
 }

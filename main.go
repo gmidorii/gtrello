@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	trello "github.com/VojtechVitek/go-trello"
@@ -50,10 +51,12 @@ func main() {
 		log.Fatalf("failed auth trello :%+v\n", err)
 	}
 
+	s := time.Now()
 	output, err := fetchTrello(config.Trello.BoardID, client)
 	if err != nil {
 		log.Fatalf("%+v\n", err)
 	}
+	fmt.Printf("%f s\n", time.Now().Sub(s).Seconds())
 	name, err := writeFile(*fTemplate, output, *fOutput)
 	if err != nil {
 		log.Fatal(err)
