@@ -77,7 +77,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(string(b))
 	err = slackSend(config.Slack.Token, config.Slack.Channel, string(b))
 	if err != nil {
 		log.Fatal(err)
