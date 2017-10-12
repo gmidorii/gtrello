@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -71,6 +72,19 @@ func main() {
 		log.Fatal(err)
 	}
 	defer file.Close()
+
+	var a string
+	for {
+		fmt.Print("slack post ? y/n: ")
+		fmt.Scan(&a)
+		if a == "y" || a == "n" {
+			break
+		}
+		fmt.Println("ERROR: input permit 'y' or 'n'")
+	}
+	if a == "n" {
+		return
+	}
 
 	b, err := ioutil.ReadAll(file)
 	if err != nil {
