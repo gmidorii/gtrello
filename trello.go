@@ -1,8 +1,15 @@
 package main
 
 import (
+	"time"
+
 	trello "github.com/VojtechVitek/go-trello"
 	"github.com/pkg/errors"
+)
+
+const (
+	trelloLayout = "2006-01-02T15:04:05.000Z"
+	outputLayout = "01/02"
 )
 
 type Output struct {
@@ -17,6 +24,7 @@ type TmpList struct {
 
 type TmpCard struct {
 	Name       string
+	DeadLine   string
 	Checklists []TmpCheckList
 }
 
@@ -77,8 +85,17 @@ func fetchTrello(boardID string, client *trello.Client) (Output, error) {
 						CheckItems: tmpItems,
 					})
 				}
+				var dstr string
+				if card.Due != "" {
+					deadLine, err := time.Parse(trelloLayout, card.Due)
+					if err != nil {
+						return output, errors.Wrap(err, "faild due parse")
+					}
+					dstr = deadLine.Format(outputLayout)
+				}
 				tmpLists[i].Cards = append(tmpLists[i].Cards, TmpCard{
 					Name:       card.Name,
+					DeadLine:   dstr,
 					Checklists: tmpCheckLists,
 				})
 				continue
