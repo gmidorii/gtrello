@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -79,6 +78,6 @@ func main() {
 	}
 	err = slackSend(config.Slack.Token, config.Slack.Channel, string(b))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed send :%+v\n", err)
 	}
 }
