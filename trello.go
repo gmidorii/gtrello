@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	trello "github.com/VojtechVitek/go-trello"
@@ -41,16 +42,20 @@ type TmpCheckItem struct {
 func fetchTrello(boardID string, client *trello.Client) (Output, error) {
 	var output Output
 
+	start := time.Now()
 	board, err := client.Board(boardID)
 	if err != nil {
 		return output, errors.Wrap(err, "faild fetch trello board")
 	}
+	fmt.Printf("board: %g s\n", time.Now().Sub(start).Seconds())
 
 	// lists
+	start = time.Now()
 	lists, err := board.Lists()
 	if err != nil {
 		return output, errors.Wrap(err, "faild fetch trello lists")
 	}
+	fmt.Printf("lists: %g s\n", time.Now().Sub(start).Seconds())
 	var tmpLists []TmpList
 	for _, v := range lists {
 		tmpLists = append(tmpLists, TmpList{
@@ -59,11 +64,14 @@ func fetchTrello(boardID string, client *trello.Client) (Output, error) {
 		})
 	}
 
+	start = time.Now()
 	cards, err := board.Cards()
 	if err != nil {
 		return output, errors.Wrap(err, "faild fetch trello cards")
 	}
+	fmt.Printf("cards: %g s\n", time.Now().Sub(start).Seconds())
 
+	start = time.Now()
 	for _, card := range cards {
 		for i, list := range tmpLists {
 			if card.IdList == list.ID {
@@ -102,6 +110,7 @@ func fetchTrello(boardID string, client *trello.Client) (Output, error) {
 			}
 		}
 	}
+	fmt.Printf("convert: %g s\n", time.Now().Sub(start).Seconds())
 
 	return Output{tmpLists}, nil
 }
