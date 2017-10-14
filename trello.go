@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	trello "github.com/VojtechVitek/go-trello"
@@ -68,12 +67,12 @@ func fetchTrello(boardID string, client *trello.Client) (Output, error) {
 	// fetch checklist
 	checkChan := make(chan []trello.Checklist)
 	for _, card := range cards {
-		go func() {
+		go func(card trello.Card) {
 			checklist, _ := card.Checklists()
 			checkChan <- checklist
-		}()
+		}(card)
 	}
-	checklists := make([]trello.Checklist, len(cards)*2, len(cards)*2)
+	checklists := make([]trello.Checklist, len(cards), len(cards))
 	idx := 0
 	count := 0
 loop:
@@ -81,7 +80,6 @@ loop:
 		select {
 		case checklist := <-checkChan:
 			for _, v := range checklist {
-				fmt.Println(v)
 				checklists[idx] = v
 				idx++
 			}
