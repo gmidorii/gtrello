@@ -100,6 +100,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
+		fmt.Println("Successful Post Slack!!")
 	}
 }
 
