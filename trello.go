@@ -12,7 +12,7 @@ const (
 	outputLayout = "01/02"
 )
 
-type Output struct {
+type Todo struct {
 	Lists []TmpList
 }
 
@@ -38,8 +38,8 @@ type TmpCheckItem struct {
 	State string
 }
 
-func fetchTrello(boardID string, client *trello.Client) (Output, error) {
-	var output Output
+func fetchTrello(boardID string, client *trello.Client) (Todo, error) {
+	var output Todo
 
 	board, err := client.Board(boardID)
 	if err != nil {
@@ -128,7 +128,7 @@ loop:
 			}
 		}
 	}
-	return Output{tmpLists}, nil
+	return Todo{tmpLists}, nil
 }
 
 func findCheckLists(checklists []trello.Checklist, ids []string) []trello.Checklist {

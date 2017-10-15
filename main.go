@@ -45,50 +45,25 @@ func main() {
 		log.Fatalf("failed config file :%+v\n", err)
 	}
 
-	output, err := pullTodo(config)
+	todo, err := pullTodo(config)
 	if err != nil {
 		log.Fatalf("%+v\n", err)
 	}
 
-	name, err := writeFile(myFlag.Template, output, myFlag.Output)
+	name, err := writeFile(myFlag.Template, todo, myFlag.Output)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%+v\n", err)
 	}
 
-	cmd := exec.Command("vim", name)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+	if err = editVim(name); err != nil {
+		log.Fatalf("%+v\n", err)
 	}
 
-	file, err := os.Open(name)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	var a string
-	for {
-		fmt.Print("slack post ? y/n: ")
-		fmt.Scan(&a)
-		if a == "y" || a == "n" {
-			break
+	if isPostSlack() {
+		err = postSlack(name, config.Slack)
+		if err != nil {
+			log.Fatalln(err)
 		}
-		fmt.Println("ERROR: input permit 'y' or 'n'")
-	}
-	if a == "n" {
-		return
-	}
-
-	b, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = slackSend(config.Slack.Token, config.Slack.Channel, string(b))
-	if err != nil {
-		log.Fatalf("failed send :%+v\n", err)
 	}
 }
 
@@ -103,19 +78,65 @@ func parseFlag() Flag {
 	return myFlag
 }
 
-func pullTodo(config Config) (Output, error) {
-	var output Output
+func pullTodo(config Config) (Todo, error) {
+	var todo Todo
 	client, err := trello.NewAuthClient(config.Trello.Key, &config.Trello.Token)
 	if err != nil {
-		return output, errors.Wrap(err, "failed auth trello")
+		return todo, errors.Wrap(err, "failed auth trello")
 	}
 
 	s := time.Now()
-	output, err = fetchTrello(config.Trello.BoardID, client)
+	todo, err = fetchTrello(config.Trello.BoardID, client)
 	if err != nil {
-		return output, errors.Wrap(err, "failed fetch todo")
+		return todo, errors.Wrap(err, "failed fetch todo")
 	}
 	fmt.Printf("%f s\n", time.Now().Sub(s).Seconds())
 
-	return output, nil
+	return todo, nil
+}
+
+func editVim(name string) error {
+	cmd := exec.Command("vim", name)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+
+	err := cmd.Run()
+	if err != nil {
+		return errors.Wrap(err, "edit failed")
+	}
+	return nil
+}
+
+func isPostSlack() bool {
+	var a string
+	for {
+		fmt.Print("slack post ? y/n: ")
+		fmt.Scan(&a)
+		if a == "y" || a == "n" {
+			break
+		}
+		fmt.Println("ERROR: input permit 'y' or 'n'")
+	}
+	if a == "n" {
+		return false
+	}
+
+	return true
+}
+
+func postSlack(name string, slack Slack) error {
+	file, err := os.Open(name)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	err = slackSend(slack.Token, slack.Channel, string(b))
+	if err != nil {
+		return errors.Wrap(err, "failed send")
+	}
+	return nil
 }

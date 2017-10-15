@@ -9,7 +9,7 @@ import (
 
 const format = "2006-01-02"
 
-func writeFile(file string, output Output, outputPath string) (string, error) {
+func writeFile(file string, output Todo, outputPath string) (string, error) {
 	tmp, err := template.New("template.md").ParseFiles(file)
 	if err != nil {
 		return "", err
