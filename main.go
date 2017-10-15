@@ -11,6 +11,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	trello "github.com/VojtechVitek/go-trello"
+	"github.com/pkg/errors"
 )
 
 type Flag struct {
@@ -37,29 +38,18 @@ type Slack struct {
 
 const gtrello = "gtrello.md"
 
-var (
-	config       Config
-	templateFile string
-)
-
 func main() {
 	myFlag := parseFlag()
-
+	var config Config
 	if _, err := toml.DecodeFile(myFlag.Config, &config); err != nil {
 		log.Fatalf("failed config file :%+v\n", err)
 	}
 
-	client, err := trello.NewAuthClient(config.Trello.Key, &config.Trello.Token)
-	if err != nil {
-		log.Fatalf("failed auth trello :%+v\n", err)
-	}
-
-	s := time.Now()
-	output, err := fetchTrello(config.Trello.BoardID, client)
+	output, err := pullTodo(config)
 	if err != nil {
 		log.Fatalf("%+v\n", err)
 	}
-	fmt.Printf("%f s\n", time.Now().Sub(s).Seconds())
+
 	name, err := writeFile(myFlag.Template, output, myFlag.Output)
 	if err != nil {
 		log.Fatal(err)
@@ -111,4 +101,21 @@ func parseFlag() Flag {
 	flag.Parse()
 
 	return myFlag
+}
+
+func pullTodo(config Config) (Output, error) {
+	var output Output
+	client, err := trello.NewAuthClient(config.Trello.Key, &config.Trello.Token)
+	if err != nil {
+		return output, errors.Wrap(err, "failed auth trello")
+	}
+
+	s := time.Now()
+	output, err = fetchTrello(config.Trello.BoardID, client)
+	if err != nil {
+		return output, errors.Wrap(err, "failed fetch todo")
+	}
+	fmt.Printf("%f s\n", time.Now().Sub(s).Seconds())
+
+	return output, nil
 }
