@@ -13,6 +13,12 @@ import (
 	trello "github.com/VojtechVitek/go-trello"
 )
 
+type Flag struct {
+	Config   string
+	Template string
+	Output   string
+}
+
 type Config struct {
 	Trello Trello
 	Slack  Slack
@@ -37,12 +43,9 @@ var (
 )
 
 func main() {
-	fConfig := flag.String("c", "./config.toml", "config file path")
-	fTemplate := flag.String("t", "./template/template.md", "template file path")
-	fOutput := flag.String("o", "./", "output file path")
-	flag.Parse()
+	myFlag := parseFlag()
 
-	if _, err := toml.DecodeFile(*fConfig, &config); err != nil {
+	if _, err := toml.DecodeFile(myFlag.Config, &config); err != nil {
 		log.Fatalf("failed config file :%+v\n", err)
 	}
 
@@ -57,7 +60,7 @@ func main() {
 		log.Fatalf("%+v\n", err)
 	}
 	fmt.Printf("%f s\n", time.Now().Sub(s).Seconds())
-	name, err := writeFile(*fTemplate, output, *fOutput)
+	name, err := writeFile(myFlag.Template, output, myFlag.Output)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,4 +100,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed send :%+v\n", err)
 	}
+}
+
+func parseFlag() Flag {
+	myFlag := Flag{
+		Config:   *flag.String("c", "./config.toml", "config file path"),
+		Template: *flag.String("t", "./template/template.md", "template file path"),
+		Output:   *flag.String("o", "./", "output file path"),
+	}
+	flag.Parse()
+
+	return myFlag
 }
