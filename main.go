@@ -7,10 +7,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"time"
 
 	"github.com/BurntSushi/toml"
-	trello "github.com/VojtechVitek/go-trello"
 	"github.com/pkg/errors"
 )
 
@@ -45,7 +43,7 @@ func main() {
 		log.Fatalf("failed config file :%+v\n", err)
 	}
 
-	todo, err := pullTodo(config)
+	todo, err := PullTodo(config.Trello)
 	if err != nil {
 		log.Fatalf("%+v\n", err)
 	}
@@ -76,23 +74,6 @@ func parseFlag() Flag {
 	flag.Parse()
 
 	return myFlag
-}
-
-func pullTodo(config Config) (Todo, error) {
-	var todo Todo
-	client, err := trello.NewAuthClient(config.Trello.Key, &config.Trello.Token)
-	if err != nil {
-		return todo, errors.Wrap(err, "failed auth trello")
-	}
-
-	s := time.Now()
-	todo, err = fetchTrello(config.Trello.BoardID, client)
-	if err != nil {
-		return todo, errors.Wrap(err, "failed fetch todo")
-	}
-	fmt.Printf("%f s\n", time.Now().Sub(s).Seconds())
-
-	return todo, nil
 }
 
 func editVim(name string) error {
