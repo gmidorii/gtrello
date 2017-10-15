@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/BurntSushi/toml"
 	"github.com/pkg/errors"
@@ -34,7 +35,44 @@ type Slack struct {
 	Channel string
 }
 
-const gtrello = "gtrello.md"
+const (
+	gtrello = "gtrello.md"
+)
+
+func init() {
+	cfgPath := filepath.Join(os.Getenv("HOME"), ".config", "gTrello")
+	_, err := os.Stat(cfgPath)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(cfgPath, 0755)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		os.Mkdir(filepath.Join(cfgPath, "output"), 0755)
+		os.Mkdir(filepath.Join(cfgPath, "template"), 0755)
+		copy(filepath.Join("template", "template.md"), filepath.Join(cfgPath, "template", "template.md"))
+
+		c, err := os.Create(filepath.Join(cfgPath, "config.toml"))
+		if err != nil {
+			log.Fatalln(err)
+		}
+		defer c.Close()
+		var config Config
+		enc := toml.NewEncoder(c)
+		err = enc.Encode(config)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+}
+
+func copy(in, out string) error {
+	i, err := ioutil.ReadFile(in)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(out, i, 0755)
+}
 
 func main() {
 	myFlag := parseFlag()
@@ -66,10 +104,11 @@ func main() {
 }
 
 func parseFlag() Flag {
+	cfgPath := filepath.Join(os.Getenv("HOME"), ".config", "gTrello")
 	myFlag := Flag{
-		Config:   *flag.String("c", "./config.toml", "config file path"),
-		Template: *flag.String("t", "./template/template.md", "template file path"),
-		Output:   *flag.String("o", "./", "output file path"),
+		Config:   *flag.String("c", filepath.Join(cfgPath, "config.toml"), "config file path"),
+		Template: *flag.String("t", filepath.Join(cfgPath, "template", "template.md"), "template file path"),
+		Output:   *flag.String("o", filepath.Join(cfgPath, "output"), "output dir path"),
 	}
 	flag.Parse()
 
