@@ -40,7 +40,7 @@ const (
 )
 
 func init() {
-	cfgPath := filepath.Join(os.Getenv("HOME"), ".config", "gTrello")
+	cfgPath := filepath.Join(os.Getenv("HOME"), ".config", "gtrello")
 	_, err := os.Stat(cfgPath)
 	if os.IsNotExist(err) {
 		err = os.Mkdir(cfgPath, 0755)
