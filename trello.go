@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	trello "github.com/VojtechVitek/go-trello"
@@ -84,29 +85,31 @@ func fetchTrello(boardID string, client *trello.Client) (Todo, error) {
 }
 
 func fetchCheckLists(cards []trello.Card) []trello.Checklist {
-	// fetch checklist
-	checkChan := make(chan []trello.Checklist)
-	for _, card := range cards {
-		go func(card trello.Card) {
-			checklist, _ := card.Checklists()
-			checkChan <- checklist
-		}(card)
-	}
+	var wg sync.WaitGroup
+	checkChan := make(chan []trello.Checklist, len(cards))
+	go func() {
+		for _, card := range cards {
+			wg.Add(1)
+			go func(card trello.Card) {
+				defer wg.Done()
+				checklist, _ := card.Checklists()
+				checkChan <- checklist
+			}(card)
+		}
+		wg.Wait()
+		close(checkChan)
+	}()
+
 	checklists := make([]trello.Checklist, len(cards), len(cards))
-	idx := 0
-	count := 0
-loop:
+	i := 0
 	for {
-		select {
-		case checklist := <-checkChan:
-			for _, v := range checklist {
-				checklists[idx] = v
-				idx++
-			}
-			count++
-			if len(cards) == count {
-				break loop
-			}
+		checks, ok := <-checkChan
+		if !ok {
+			break
+		}
+		for _, c := range checks {
+			checklists[i] = c
+			i++
 		}
 	}
 	return checklists
