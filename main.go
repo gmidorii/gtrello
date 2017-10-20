@@ -14,9 +14,10 @@ import (
 )
 
 type Flag struct {
-	Config   string
-	Template string
-	Output   string
+	Config     string
+	Template   string
+	Output     string
+	Attachment bool
 }
 
 type Config struct {
@@ -96,6 +97,14 @@ func main() {
 	}
 
 	if isPostSlack() {
+		if myFlag.Attachment {
+			a, err := CreateAttachement()
+			if err != nil {
+				log.Fatalf("%+v\n", err)
+			}
+			fmt.Println(a)
+			return
+		}
 		err = postSlack(name, config.Slack)
 		if err != nil {
 			log.Fatalln(err)
@@ -107,9 +116,10 @@ func main() {
 func parseFlag() Flag {
 	cfgPath := filepath.Join(os.Getenv("HOME"), ".config", "gTrello")
 	myFlag := Flag{
-		Config:   *flag.String("c", filepath.Join(cfgPath, "config.toml"), "config file path"),
-		Template: *flag.String("t", filepath.Join(cfgPath, "template", "template.md"), "template file path"),
-		Output:   *flag.String("o", filepath.Join(cfgPath, "output"), "output dir path"),
+		Config:     *flag.String("c", filepath.Join(cfgPath, "config.toml"), "config file path"),
+		Template:   *flag.String("t", filepath.Join(cfgPath, "template", "template.md"), "template file path"),
+		Output:     *flag.String("o", filepath.Join(cfgPath, "output"), "output dir path"),
+		Attachment: *flag.Bool("a", false, "use attachment slack post format"),
 	}
 	flag.Parse()
 
