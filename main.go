@@ -103,13 +103,14 @@ func main() {
 			if err != nil {
 				log.Fatalln(err)
 			}
+			fmt.Println("Successful Post Attachment to Slack!!")
 			return
 		}
-		//err = postSlack(name, config.Slack)
+		err = postSlack(name, config.Slack)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Println("Successful Post Slack!!")
+		fmt.Println("Successful Post to Slack!!")
 	}
 }
 
