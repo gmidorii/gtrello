@@ -14,10 +14,10 @@ import (
 )
 
 type Flag struct {
-	Config     string
-	Template   string
-	Output     string
-	Attachment bool
+	Config     *string
+	Template   *string
+	Output     *string
+	Attachment *bool
 }
 
 type Config struct {
@@ -78,7 +78,7 @@ func copy(in, out string) error {
 func main() {
 	myFlag := parseFlag()
 	var config Config
-	if _, err := toml.DecodeFile(myFlag.Config, &config); err != nil {
+	if _, err := toml.DecodeFile(*myFlag.Config, &config); err != nil {
 		log.Fatalf("failed config file :%+v\n", err)
 	}
 
@@ -87,7 +87,7 @@ func main() {
 		log.Fatalf("%+v\n", err)
 	}
 
-	name, err := writeFile(myFlag.Template, todo, myFlag.Output)
+	name, err := writeFile(*myFlag.Template, todo, *myFlag.Output)
 	if err != nil {
 		log.Fatalf("%+v\n", err)
 	}
@@ -97,15 +97,15 @@ func main() {
 	}
 
 	if isPostSlack() {
-		if myFlag.Attachment {
-			a, err := CreateAttachement()
+		if *myFlag.Attachment {
+			a := CreateAttachements(todo)
+			err = slackSendAttachment(config.Slack.Token, config.Slack.Channel, a)
 			if err != nil {
-				log.Fatalf("%+v\n", err)
+				log.Fatalln(err)
 			}
-			fmt.Println(a)
 			return
 		}
-		err = postSlack(name, config.Slack)
+		//err = postSlack(name, config.Slack)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -116,10 +116,10 @@ func main() {
 func parseFlag() Flag {
 	cfgPath := filepath.Join(os.Getenv("HOME"), ".config", "gTrello")
 	myFlag := Flag{
-		Config:     *flag.String("c", filepath.Join(cfgPath, "config.toml"), "config file path"),
-		Template:   *flag.String("t", filepath.Join(cfgPath, "template", "template.md"), "template file path"),
-		Output:     *flag.String("o", filepath.Join(cfgPath, "output"), "output dir path"),
-		Attachment: *flag.Bool("a", false, "use attachment slack post format"),
+		Config:     flag.String("c", filepath.Join(cfgPath, "config.toml"), "config file path"),
+		Template:   flag.String("t", filepath.Join(cfgPath, "template", "template.md"), "template file path"),
+		Output:     flag.String("o", filepath.Join(cfgPath, "output"), "output dir path"),
+		Attachment: flag.Bool("a", true, "use attachment slack post format"),
 	}
 	flag.Parse()
 

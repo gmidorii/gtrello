@@ -18,3 +18,14 @@ func slackSend(token, channel, text string) error {
 	}
 	return nil
 }
+
+func slackSendAttachment(token, channel string, attachments []slack.Attachment) error {
+	client := slack.New(token)
+	_, _, err := client.PostMessage(channel, "", slack.PostMessageParameters{
+		Attachments: attachments,
+	})
+	if err != nil {
+		return errors.Wrap(err, "faild post attachments channel")
+	}
+	return nil
+}
