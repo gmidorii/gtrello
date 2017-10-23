@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/pkg/errors"
@@ -38,6 +39,7 @@ type Slack struct {
 
 const (
 	gtrello = "gtrello.md"
+	format  = "2006-01-02"
 )
 
 func init() {
@@ -75,43 +77,54 @@ func copy(in, out string) error {
 	return ioutil.WriteFile(out, i, 0755)
 }
 
-func main() {
+func run() error {
 	myFlag := parseFlag()
 	var config Config
 	if _, err := toml.DecodeFile(*myFlag.Config, &config); err != nil {
-		log.Fatalf("failed config file :%+v\n", err)
+		return errors.Wrap(err, "failed config file :%+v\n")
 	}
 
 	todo, err := PullTodo(config.Trello)
 	if err != nil {
-		log.Fatalf("%+v\n", err)
+		return err
 	}
 
-	name, err := writeFile(*myFlag.Template, todo, *myFlag.Output)
-	if err != nil {
-		log.Fatalf("%+v\n", err)
+	now := time.Now()
+	outputFile := fmt.Sprintf("%s/%s-%s", *myFlag.Output, now.Format(format), gtrello)
+
+	if *myFlag.Attachment {
+		if err = editVim(outputFile); err != nil {
+			return err
+		}
+		attachs, err := CreateAttachements(todo, outputFile)
+		if err != nil {
+			return err
+		}
+		err = slackSendAttachment(config.Slack.Token, config.Slack.Channel, attachs)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("Successful Post Attachment to Slack!!")
+		return nil
 	}
 
-	if err = editVim(name); err != nil {
-		log.Fatalf("%+v\n", err)
+	if err := writeFile(*myFlag.Template, todo, outputFile); err != nil {
+		return err
+	}
+
+	if err = editVim(outputFile); err != nil {
+		return err
 	}
 
 	if isPostSlack() {
-		if *myFlag.Attachment {
-			a := CreateAttachements(todo)
-			err = slackSendAttachment(config.Slack.Token, config.Slack.Channel, a)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			fmt.Println("Successful Post Attachment to Slack!!")
-			return
-		}
-		err = postSlack(name, config.Slack)
+		err = postSlack(outputFile, config.Slack)
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 		fmt.Println("Successful Post to Slack!!")
 	}
+	return nil
 }
 
 func parseFlag() Flag {
@@ -171,4 +184,10 @@ func postSlack(name string, slack Slack) error {
 		return errors.Wrap(err, "failed send")
 	}
 	return nil
+}
+
+func main() {
+	if err := run(); err != nil {
+		log.Fatalf("%+v\n", err)
+	}
 }

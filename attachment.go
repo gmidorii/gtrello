@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/nlopes/slack"
 )
@@ -14,8 +15,8 @@ var colors = []string{
 	"9CA0AF",
 }
 
-func CreateAttachements(todo Todo) []slack.Attachment {
-	attachments := make([]slack.Attachment, len(todo.Lists))
+func CreateAttachements(todo Todo, outputFile string) ([]slack.Attachment, error) {
+	attachments := make([]slack.Attachment, len(todo.Lists)+1)
 	for i, list := range todo.Lists {
 		var color string
 		if i < len(colors) {
@@ -23,7 +24,18 @@ func CreateAttachements(todo Todo) []slack.Attachment {
 		}
 		attachments[i] = createAttachement(list, color)
 	}
-	return attachments
+
+	o, err := ioutil.ReadFile(outputFile)
+	if err != nil {
+		return nil, err
+	}
+	attachments[len(attachments)-1] = slack.Attachment{
+		Title: "Output",
+		Text:  string(o),
+		Color: "#066f6f",
+	}
+
+	return attachments, nil
 }
 
 func createAttachement(list TodoList, color string) slack.Attachment {
