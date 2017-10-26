@@ -29,8 +29,9 @@ func CreateAttachements(todo Todo, outputFile string) ([]slack.Attachment, error
 	if err != nil {
 		return nil, err
 	}
+	// Fix later
 	attachments[len(attachments)-1] = slack.Attachment{
-		Title: "Output",
+		Title: "Comment",
 		Text:  string(o),
 		Color: "#066f6f",
 	}
@@ -41,7 +42,7 @@ func CreateAttachements(todo Todo, outputFile string) ([]slack.Attachment, error
 func createAttachement(list TodoList, color string) slack.Attachment {
 	var text string
 	for _, card := range list.Cards {
-		text += fmt.Sprintf("■ %s\n", card.Name)
+		text += fmt.Sprintf("■  %s\n", card.Name)
 	}
 	return slack.Attachment{
 		Title: list.Name,
