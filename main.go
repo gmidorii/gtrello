@@ -27,9 +27,11 @@ type Config struct {
 }
 
 type Trello struct {
-	Key     string
-	Token   string
-	BoardID string
+	Key       string
+	Token     string
+	BoardID   string
+	Daylists  []string
+	Weeklists []string
 }
 
 type Slack struct {
@@ -96,7 +98,7 @@ func run() error {
 		if err = editVim(outputFile); err != nil {
 			return err
 		}
-		attachs, err := CreateAttachements(todo, outputFile)
+		attachs, err := CreateAttachements(todo, outputFile, config.Trello.Daylists)
 		if err != nil {
 			return err
 		}
