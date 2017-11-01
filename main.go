@@ -15,10 +15,11 @@ import (
 )
 
 type Flag struct {
-	Config     *string
-	Template   *string
-	Output     *string
-	Attachment *bool
+	Config   *string
+	Template *string
+	Output   *string
+	Day      *bool
+	Week     *bool
 }
 
 type Config struct {
@@ -40,8 +41,7 @@ type Slack struct {
 }
 
 const (
-	gtrello = "gtrello.md"
-	format  = "2006-01-02"
+	format = "2006-01-02"
 )
 
 func init() {
@@ -91,36 +91,56 @@ func run() error {
 		return err
 	}
 
-	now := time.Now()
-	outputFile := fmt.Sprintf("%s/%s-%s", *myFlag.Output, now.Format(format), gtrello)
-
-	if *myFlag.Attachment {
-		if err = editVim(outputFile); err != nil {
-			return err
-		}
-		attachs, err := CreateAttachements(todo, outputFile, config.Trello.Daylists)
+	if *myFlag.Day {
+		err = postDayReport(myFlag, todo, config)
 		if err != nil {
 			return err
 		}
-		err = slackSendAttachment(config.Slack.Token, config.Slack.Channel, attachs)
-		if err != nil {
-			return err
-		}
-
-		fmt.Println("Successful Post Attachment to Slack!!")
-		return nil
 	}
 
-	if err := writeFile(*myFlag.Template, todo, outputFile); err != nil {
+	if *myFlag.Week {
+		err := postWeekReport(myFlag, todo, config)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func postDayReport(myFlag Flag, todo Todo, config Config) error {
+	now := time.Now()
+	outputFile := fmt.Sprintf("%s/day/%s.md", *myFlag.Output, now.Format(format))
+
+	if err := editVim(outputFile); err != nil {
+		return err
+	}
+	attachs, err := CreateAttachements(todo, outputFile, config.Trello.Daylists)
+	if err != nil {
+		return err
+	}
+	err = slackSendAttachment(config.Slack.Token, config.Slack.Channel, attachs)
+	if err != nil {
 		return err
 	}
 
-	if err = editVim(outputFile); err != nil {
+	fmt.Println("Successful Post Attachment to Slack!!")
+	return nil
+}
+
+func postWeekReport(myFlag Flag, todo Todo, config Config) error {
+	now := time.Now()
+	outputFile := fmt.Sprintf("%s/week/%s.md", *myFlag.Output, now.Format(format))
+
+	if err := writeFile(*myFlag.Template, outputFile, todo, config.Trello.Weeklists); err != nil {
+		return err
+	}
+
+	if err := appendFile(outputFile, *myFlag.Output+"/day", 5); err != nil {
 		return err
 	}
 
 	if isPostSlack() {
-		err = postSlack(outputFile, config.Slack)
+		err := postSlack(outputFile, config.Slack)
 		if err != nil {
 			return err
 		}
@@ -129,13 +149,23 @@ func run() error {
 	return nil
 }
 
+func containsList(name string, list []string) bool {
+	for _, v := range list {
+		if name == v {
+			return true
+		}
+	}
+	return false
+}
+
 func parseFlag() Flag {
 	cfgPath := filepath.Join(os.Getenv("HOME"), ".config", "gTrello")
 	myFlag := Flag{
-		Config:     flag.String("c", filepath.Join(cfgPath, "config.toml"), "config file path"),
-		Template:   flag.String("t", filepath.Join(cfgPath, "template", "template.md"), "template file path"),
-		Output:     flag.String("o", filepath.Join(cfgPath, "output"), "output dir path"),
-		Attachment: flag.Bool("a", true, "use attachment slack post format"),
+		Config:   flag.String("c", filepath.Join(cfgPath, "config.toml"), "config file path"),
+		Template: flag.String("t", filepath.Join(cfgPath, "template", "template.md"), "template file path"),
+		Output:   flag.String("o", filepath.Join(cfgPath, "output"), "output dir path"),
+		Day:      flag.Bool("d", true, "day report"),
+		Week:     flag.Bool("w", false, "week report"),
 	}
 	flag.Parse()
 

@@ -10,7 +10,7 @@ func slackSend(token, channel, text string) error {
 	_, err := client.UploadFile(slack.FileUploadParameters{
 		Content:  text,
 		Filetype: "markdown",
-		Title:    "Daily",
+		Title:    "Week Report",
 		Channels: []string{channel},
 	})
 	if err != nil {

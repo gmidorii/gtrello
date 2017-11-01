@@ -18,7 +18,7 @@ var colors = []string{
 func CreateAttachements(todo Todo, outputFile string, daylists []string) ([]slack.Attachment, error) {
 	attachments := make([]slack.Attachment, len(todo.Lists)+1)
 	for i, list := range todo.Lists {
-		if !containsDaylists(list.Name, daylists) {
+		if !containsList(list.Name, daylists) {
 			continue
 		}
 		var color string
@@ -52,13 +52,4 @@ func createAttachement(list TodoList, color string) slack.Attachment {
 		Text:  text,
 		Color: color,
 	}
-}
-
-func containsDaylists(name string, daylists []string) bool {
-	for _, day := range daylists {
-		if day == name {
-			return true
-		}
-	}
-	return false
 }
