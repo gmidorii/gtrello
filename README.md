@@ -18,24 +18,28 @@ Run
 ```sh
 % ./gtrello
 
-% ./gtello -h
-Usage of ./gtrello:
+% gtrello -h
+Usage of gtrello:
   -c string
-        config file path (default "/Users/midori/.config/gTrello/config.toml")
+        config file path (default "$HOME/.config/gTrello/config.toml")
+  -d    day report (default true)
   -o string
-        output dir path (default "/Users/midori/.config/gTrello/output")
+        output dir path (default "$HOME/.config/gTrello/output")
   -t string
-        template file path (default "/Users/midori/.config/gTrello/template/template.md")
+        template file path (default "$HOME/.config/gTrello/template/template.md")
+  -w    week report
 ```
 
 Config file
 ```
-% tree ~/.config/gtrello
-$HOME/.config/gtrello
+% tree ~/.config/gTrello
+/Users/soichiro-taga/.config/gTrello
 ├── config.toml
 ├── output
-│   ├── 2017-10-15-gtrello.md
-│   └── ...
+│   ├── day
+│   │   └── 2017-11-02.md
+│   └── week
+│       └── 2017-11-02.md
 └── template
     └── template.md
 ```
