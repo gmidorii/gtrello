@@ -173,7 +173,7 @@ func parseFlag() Flag {
 }
 
 func editVim(name string) error {
-	cmd := exec.Command("vim", name)
+	cmd := exec.Command("vi", name)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 
