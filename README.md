@@ -43,3 +43,6 @@ Config file
 └── template
     └── template.md
 ```
+
+## TODO
+- fix weekly report format
