@@ -1,7 +1,8 @@
 # gtrello
 
 ## Overview
-gtrello create daily report from Trello cards.
+gtrello create daily report from Trello cards to slack.
+
 
 ## Usage
 Install
